@@ -15,14 +15,13 @@ class Quadratic_Solver
         boolean calc_vertex = true, calc_yintercept = true, print_table = true,
                 calc_sumproduct = true, factor_equation = true, equation_loaded = false;
   /* equation_loaded tells if there is currently an equation entered */
-        Vector<String> myVector=new Vector<String>(10,2);
         int[] table_boundaries = {-10, 10};
         double[] equation = new double [3];
         double [] vertex = new double [2];
         double [] solution = new double [2];
-        boolean has_solution;
-        System.out.print("Plain+Simple Quadratic Solver\n";
-        System.out.print("        Press enter\n";
+        boolean has_solution = false;
+        System.out.print("Plain+Simple Quadratic Solver\n");
+        System.out.print("        Press enter\n");
         cin.get();
         int menu_input;
         do {
@@ -30,7 +29,7 @@ class Quadratic_Solver
             LoadSettings(calc_vertex, calc_yintercept, print_table, calc_sumproduct,
                     factor_equation, table_boundaries);
     /* attempt to load last equation used from "quadratics_current" file */
-            equation_loaded = GetEquationFromFile("quadratics_current", 1, 1, equation, 0);
+            equation_loaded = GetEquationFromFile("quadratics_current", 1, true, equation, false);
             if(equation_loaded) {
                 System.out.print("Current equation loaded: ");
                 PrintEquation(equation[0], equation[1], equation[2]);
@@ -47,7 +46,7 @@ class Quadratic_Solver
                 line_counter++;
                 System.out.print(line_counter + ". Factor Equation\n"); /// I'm sure you can figure out a more efficient way to do this
                 line_counter++;
-                System.out.print(line_counter + ". Analyze Equation\n)";
+                System.out.print(line_counter + ". Analyze Equation\n");
                 line_counter++;
             }
             System.out.print(line_counter + ".  Enter New Equation\n");
@@ -60,7 +59,7 @@ class Quadratic_Solver
             line_counter++;
             System.out.print(line_counter + ". Quit\n");
             line_counter++;
-            System.out.print("---------------------------------\n";
+            System.out.print("---------------------------------\n");
             System.out.print("Enter choice: ");
             cin >> menu_input;
             if(equation_loaded) {
@@ -71,7 +70,7 @@ class Quadratic_Solver
                             CalculateRoots(equation, solution, has_solution, true);
                             break;
                         case 2:
-                            System.out.print(Factor(equation, solution);
+                            System.out.print(Factor(equation, solution));
                             break;
                         case 3:
                             Display(equation, vertex, solution, has_solution, calc_vertex,
@@ -118,7 +117,7 @@ class Quadratic_Solver
                             System.out.print("This function has not been created yet\n\n");
                             break;
                         case 5:
-                            exit(0);
+                            // exit(0);
                             break;
                         default:
                             System.out.print("Please enter a valid number between 1 and 5\n\n");
@@ -139,7 +138,7 @@ class Quadratic_Solver
         System.out.print("Equation will be entered in the form ax^2 + bx + c = 0\n\n";
         for (int i = 0; i < 3; i++) {
     /* 97 is the ascii character a, so this goes from a to c in the loop */
-            System.out.print("Enter " + char(i + 97) + " >> term: ");
+            System.out.print("Enter " + (char)(i + 97) + " >> term: ");
             cin >> equation[i];
         }
         ofstream current_equation ("quadratics_current");
@@ -190,7 +189,7 @@ class Quadratic_Solver
     }
     public static void Options(boolean calc_vertex, boolean calc_yintercept, boolean print_table,
                                boolean calc_sumproduct, boolean factor_equation,
-                               int table_boundaries[2]) {
+                               int table_boundaries[]) {
         LoadSettings(calc_vertex, calc_yintercept, print_table, calc_sumproduct,
                 factor_equation, table_boundaries);
         DisplayOptions(calc_vertex, calc_yintercept, print_table, calc_sumproduct,
@@ -255,8 +254,8 @@ class Quadratic_Solver
         }
     }
     public static void Display(double equation[], double vertex[], double solution[],
-                 boolean & has_solution, boolean calc_vertex, boolean calc_yintercept, boolean print_table,
-                 boolean calc_sumproduct, boolean factor_equation, int table_boundaries[2]) {
+                 boolean has_solution, boolean calc_vertex, boolean calc_yintercept, boolean print_table,
+                 boolean calc_sumproduct, boolean factor_equation, int table_boundaries[]) {
 
         System.out.print("\n\n");
         if (calc_vertex) {
@@ -266,7 +265,7 @@ class Quadratic_Solver
             /// ok, it's calculated - now it needs to be stored!
             CalculateYIntercept(equation);
         }
-        System.out.print("Equation: ";
+        System.out.print("Equation: ");
         PrintEquation(equation[0], equation[1], equation[2]);
         CalculateRoots(equation, solution, has_solution, true);
         if (calc_sumproduct) {
@@ -278,13 +277,13 @@ class Quadratic_Solver
             String f = Factor(equation, solution);
             System.out.print(f);
         }
-        if (calc_vertex == true) {
+        if (calc_vertex) {
             System.out.print("Vertex: (" + vertex[0] + "," + vertex[1] + ")\n");
         }
-        if (calc_yintercept == true) {
+        if (calc_yintercept) {
             System.out.print("y-Intercept: (0," + equation[1] + ")\n");
         }
-        if (print_table == true) {
+        if (print_table) {
             Table(equation, print_table, table_boundaries);
         }
     }
@@ -437,7 +436,7 @@ class Quadratic_Solver
         if(file.is_open()) {
             while(getline(file, line)) {
                 if(line_counter != line_number)
-                    equations.push_back(line); /* copy all equations except chosen one
+                    equations.add(line); /* copy all equations except chosen one
 											* to vector */
                 line_counter++;
             }
@@ -459,7 +458,7 @@ class Quadratic_Solver
         ifstream equations("quadratics_equations");
         if(equations.is_open()) {
             while(getline(equations, line)) {
-                GetEquationFromFile("quadratics_equations", line_counter, 0, equation, 1);
+                GetEquationFromFile("quadratics_equations", line_counter, false, equation, false);
                 System.out.print(line_counter + ". ");
 //			PrintEquation(equation);
                 line_counter++;
@@ -479,7 +478,7 @@ class Quadratic_Solver
                 RemoveEquationFromList(remove);
             }
             else
-                GetEquationFromFile("quadratics_equations", choice, 1, equation, 0);
+                GetEquationFromFile("quadratics_equations", choice, 1, equation, false);
         } else
             System.out.print("Error: No saved equations.\n");
     }
@@ -488,7 +487,7 @@ class Quadratic_Solver
    user. If print = true, the equation will be printed. */
     /// did you mean equation[] or something else? equations[] doesn't exist
     public static boolean GetEquationFromFile(String file_name, int line_number, boolean load, double equation[], boolean print) {
-        String line, a, b, c;
+        String line = "", a ="", b = "", c = "";
         int line_counter = 1;
         boolean file_exists = false;
         ifstream current_equation(file_name.c_str());
@@ -496,22 +495,22 @@ class Quadratic_Solver
             file_exists = true;
             while (getline(current_equation, line)) {
                 if(line_counter == line_number) {
-                    int first_comma = line.find(','); /* find first comma */
-                    int second_comma = line.find_last_of(','); /* find second comma */
+                    int first_comma = line.indexOf(','); /* find first comma */
+                    int second_comma = line.lastIndexOf(','); /* find second comma */
 				/* REMINDER: line.substr() takes in the size of the substring, NOT the
 				             ending point as the second parameter (yes, that sucks) */
-                    a = line.substr(0, first_comma);
-                    b = line.substr(first_comma + 1, second_comma - first_comma);
+                    a = line.substring(0, first_comma);
+                    b = line.substring(first_comma + 1, second_comma - first_comma);
 				/* c starts at the second comma, and the size of c is the size of the
 				   whole line minus the size of a, b, and the 2 commas */
-                    c = line.substr(second_comma + 1,
-                            line.size()  - (a.size() + b.size() + 2));
+                    c = line.substring(second_comma + 1,
+                            line.length()  - (a.length() + b.length() + 2));
                 }
                 line_counter++;
                 if(load) { /* "loads" values in to equation[] according to parameter */
-                    equation[0] = atof(a.c_str());
-                    equation[1] = atof(b.c_str());
-                    equation[2] = atof(c.c_str());
+                    equation[0] = Double.parseDouble(a);
+                    equation[1] = Double.parseDouble(b);
+                    equation[2] = Double.parseDouble(c);
                 }
                 if(print)
                     PrintEquation(equation[0], equation[1], equation[2]);
@@ -522,7 +521,9 @@ class Quadratic_Solver
     /* converts numerical values of equation into string form.
 * This will be used to write our equations to files */
     public static String EquationToString(double a, double b, double c) {
-        String equation = to_string(a) + ',' + to_string(b) + ',' + to_string(c);
+        /* I've heard that the Double.toString can cause some weird errors, this will need to
+        be tested. */
+        String equation = Double.toString(a) + ',' + Double.toString(b) + ',' + Double.toString(c);
         return equation;
     }
     /* Prints equation with proper formatting */
@@ -533,7 +534,7 @@ class Quadratic_Solver
         if (a != 0) {
     /* outputs the coefficient as long as it isn't 1 */
             if (a != 1) {
-                equation_output += to_string(a);
+                equation_output += Double.toString(a);
             }
             equation_output += "x^2";
         }
@@ -542,20 +543,20 @@ class Quadratic_Solver
     /* outputs the sign of the coefficient */
             equation_output += GetSign(b);
             if (b != 1) {
-                equation_output += to_string(b);
-            }
-            equation_output += 'x';
+                equation_output += Double.toString(b);
+        }
+        equation_output += 'x';
         }
         if (c != 0) {
             equation_output += GetSign(c);
             if (c != 1) {
-                equation_output += to_string(c);
+                equation_output += Double.toString(c);
             }
         }
         equation_output += "=0";
         System.out.print(equation_output + "\n";
     }
-    public static void Flipboolean(boolean &boolean_to_flip) {
+    public static void Flipboolean(boolean boolean_to_flip) {
         boolean_to_flip = !boolean_to_flip;
     }
     public static void ClearScreen() {
