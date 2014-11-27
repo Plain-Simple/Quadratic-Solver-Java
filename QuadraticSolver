@@ -6,9 +6,10 @@
  *
  * By Stefan Kussmaul and Matthew Mcmullin
  *******************************************************************************/
-import java.util.Vector; /* for using vectors */
 import java.io.Closeable; /* for closing files */
 import java.io.*;
+import java.util.Vector; /* for using vectors */
+import java.util.Scanner; /* for console input */
 
 class Quadratic_Solver
 {
@@ -24,7 +25,7 @@ class Quadratic_Solver
         boolean has_solution = false;
         System.out.print("Plain+Simple Quadratic Solver\n");
         System.out.print("        Press enter\n");
-        cin.get();
+        new Scanner(System.in).nextLine(); /* waits for user to hit enter */
         int menu_input;
         do {
 	/* load settings from file */
@@ -63,7 +64,8 @@ class Quadratic_Solver
             line_counter++;
             System.out.print("---------------------------------\n");
             System.out.print("Enter choice: ");
-            cin >> menu_input;
+            Scanner input = new Scanner(System.in);
+            menu_input = input.nextInt();;
             if(equation_loaded) {
     	/* menu when equation IS loaded */
                 do {
@@ -128,20 +130,17 @@ class Quadratic_Solver
                 }while(menu_input < 1 || menu_input > 5);
             }
             System.out.print("\n\nHit enter to return to menu "); /// want this to make the program wait until user hits enter
-            /// what isn't working? In what way?
-            /// this happens when we use a combination of cin, getline, and other stuff. We will have to figure out one to use to standardize everything
-            cin.get();
-            cin.get(); /* has to be repeated once */
+            new Scanner(System.in).nextLine(); /* waits for user to hit enter */
         }
         while (menu_input != 3);
     }
     public static void InputEquation(double equation[]) {
-        char choice;
-        System.out.print("Equation will be entered in the form ax^2 + bx + c = 0\n\n";
+        String choice;
+        System.out.print("Equation will be entered in the form ax^2 + bx + c = 0\n\n");
         for (int i = 0; i < 3; i++) {
     /* 97 is the ascii character a, so this goes from a to c in the loop */
             System.out.print("Enter " + (char)(i + 97) + " >> term: ");
-            cin >> equation[i];
+            equation[i] = Double.parseDouble(GetConsoleInput());
         }
         try {
             FileWriter file = new FileWriter("quadratics_current");
@@ -153,8 +152,9 @@ class Quadratic_Solver
             System.out.println("Error: could not write to file.\n");
         }
         System.out.print("Save equation? (y/n) ");
-        cin >> choice;
-        if(choice == 'y')
+        Scanner input = new Scanner(System.in);
+        choice = GetConsoleInput();
+        if(choice == "y")
             SaveEquation(equation[0], equation[1], equation[2]);
     }
     public static void CalculateRoots(double equation[], double solution[],
@@ -202,7 +202,7 @@ class Quadratic_Solver
         System.out.print("Enter number of choice you would like to change: ");
         int choice = 0;
         do{
-            cin >> choice;
+            choice = Integer.parseInt(GetConsoleInput());
             switch (choice) {
                 case 1:
                     calc_vertex = !calc_vertex;
@@ -229,9 +229,9 @@ class Quadratic_Solver
                     break;
                 case 6:
                     System.out.print("Enter lower bound: ");
-                    cin >> table_boundaries[0];
+                    table_boundaries[0] = Integer.parseInt(GetConsoleInput());
                     System.out.print("Enter upper bound: ");
-                    cin >> table_boundaries[1];
+                    table_boundaries[1] = Integer.parseInt(GetConsoleInput());
                     System.out.print("New bounds set to (" + table_boundaries[0] + "," +
                             table_boundaries[1] + ")\n");
                     break;
@@ -483,14 +483,14 @@ class Quadratic_Solver
             equations.close();
             System.out.print(line_counter + ". " + "Delete equation\n");
             System.out.print("Enter choice: ");
-            cin >> choice;
+            choice = Integer.parseInt(GetConsoleInput());
             if (choice == line_counter) { /* choice is to delete an equation */
                 System.out.print("Enter number of equation to remove: ");
-                cin >> remove;
+                remove = Integer.parseInt(GetConsoleInput());
                 do {
                     if (remove < 1 || remove > line_counter - 1) {
                         System.out.print("Error: Invalid choice. Please try again: ");
-                        cin >> remove;
+                        remove = Integer.parseInt(GetConsoleInput());
                     }
                 } while (remove < 1 || remove > line_counter - 1);
                 RemoveEquationFromList(remove);
@@ -575,12 +575,25 @@ class Quadratic_Solver
             }
         }
         equation_output += "=0";
-        System.out.print(equation_output + "\n";
+        System.out.print(equation_output + "\n");
     }
     public static void Flipboolean(boolean boolean_to_flip) {
         boolean_to_flip = !boolean_to_flip;
     }
-    public static void ClearScreen() {
-        System.out.print("\x1b[2J\x1b[H" << flush;
+//    public static void ClearScreen() { /// this function needs to be rewritten
+                                        /// and implemented or removed
+//        System.out.print("\x1b[2J\x1b[H" << flush;
+//    }
+    public static String GetConsoleInput() {
+        InputStreamReader isr = new InputStreamReader(System.in);
+        BufferedReader buffer = new BufferedReader(isr);
+        String input = "";
+        try {
+            input = buffer.readLine();
+            buffer.close();
+        } catch(IOException e) {
+            System.out.println("An input error has occured\n");
+        }
+        return input;
     }
 }
