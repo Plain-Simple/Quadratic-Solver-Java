@@ -6,7 +6,9 @@
  *
  * By Stefan Kussmaul and Matthew Mcmullin
  *******************************************************************************/
-import java.util.Vector;
+import java.util.Vector; /* for using vectors */
+import java.io.Closeable; /* for closing files */
+import java.io.*;
 
 class Quadratic_Solver
 {
@@ -91,7 +93,7 @@ class Quadratic_Solver
                             System.out.print("This function has not been created yet\n\n");
                             break;
                         case 8:
-                            exit(0);
+                            //exit(0); /// does this require us finding a java equivalent?
                             break;
                         default:
                             System.out.print("Please enter a valid number between 1 and 8\n\n");
@@ -141,10 +143,14 @@ class Quadratic_Solver
             System.out.print("Enter " + (char)(i + 97) + " >> term: ");
             cin >> equation[i];
         }
-        ofstream current_equation ("quadratics_current");
-        if (current_equation.is_open()) /* write values to file for future use */ {
-            current_equation << EquationToString(equation[0], equation[1], equation[2]); /* write equation to file */
+        try {
+            FileWriter file = new FileWriter("quadratics_current");
+            BufferedWriter current_equation = new BufferedWriter(file);
+            /* write current equation to file in proper string format (a,b,c) */
+            current_equation.write(EquationToString(equation[0], equation[1], equation[2]));
             current_equation.close();
+        } catch (IOException e) {
+            System.out.println("Error: could not write to file.\n");
         }
         System.out.print("Save equation? (y/n) ");
         cin >> choice;
@@ -153,17 +159,16 @@ class Quadratic_Solver
     }
     public static void CalculateRoots(double equation[], double solution[],
                                       boolean has_solution, boolean print) {
-  /* b^2 - 4ac */
-        int discriminant = pow(equation[1], 2) - (4 * equation[0] * equation[2]);
+    /* b^2 - 4ac */
+        double discriminant = Math.pow(equation[1], 2) - (4 * equation[0] * equation[2]);
         if (discriminant < 0) {
             has_solution = false;
-        }
-        else {
+        } else {
             has_solution = true;
     /* -b + root b^2 - 4ac / 2a */
-            solution[0] = (-equation[1] + sqrt(discriminant)) / (2 * equation[0]);
+            solution[0] = (-equation[1] + Math.sqrt(discriminant)) / (2 * equation[0]);
     /* -b - root b^2 - 4ac / 2a */
-            solution[1] = (-equation[1] - sqrt(discriminant)) / (2 * equation[0]);
+            solution[1] = (-equation[1] - Math.sqrt(discriminant)) / (2 * equation[0]);
         }
         if(print) {
             if (!has_solution) {
@@ -239,13 +244,16 @@ class Quadratic_Solver
         } while (choice < 1 || choice > 7);
         String string_settings = "" + booleanToChar(calc_vertex) + booleanToChar(
                 calc_yintercept) + booleanToChar(print_table) + booleanToChar(
-                calc_sumproduct) + booleanToChar(factor_equation) + to_string(
-                table_boundaries[0]) + ',' + to_string(table_boundaries[1]);
-        ofstream settings_file("quadratics_settings");
-        if (settings_file.is_open()) {
-            settings_file << string_settings;
+                calc_sumproduct) + booleanToChar(factor_equation) + Integer.toString(
+                table_boundaries[0]) + ',' + Integer.toString(table_boundaries[1]);
+        try{
+            FileWriter file = new FileWriter("quadratics_settings");
+            BufferedWriter settings_file = new BufferedWriter(file);
+            settings_file.write(string_settings);
+            settings_file.close();
+        } catch(IOException e) {
+            System.out.println("Error encountered writing file.\n");
         }
-        settings_file.close();
     }
     public static void Table(double equation[], boolean print_table, int table_boundaries[]) { /// needs to be formatted
         System.out.print("   x             f(x)\n");
@@ -293,21 +301,17 @@ class Quadratic_Solver
         double equation_factor = PlugIn(1, equation) /
                 ((1 - solution[0]) * (1 - solution[1]));
         if (solution[0] != solution[1]) {
-            return to_string(equation_factor) +
-                    "(x" + GetSign(solution[0]) + to_string(solution[0]) + ")" +
-                    "(x" + GetSign(solution[1]) + to_string(solution[1]) + ")";
+            return Double.toString(equation_factor) +
+                    "(x" + GetSign(solution[0]) + Double.toString(solution[0]) + ")" +
+                    "(x" + GetSign(solution[1]) + Double.toString(solution[1]) + ")";
         } else {
-            return to_string(equation_factor) +
-                    "(x" + GetSign(solution[0]) + to_string(solution[0]) + ")^2";
+            return Double.toString(equation_factor) +
+                    "(x" + GetSign(solution[0]) + Double.toString(solution[0]) + ")^2";
         }
     }
     public static String booleanToString(boolean boolean_to_convert) {
-        if (boolean_to_convert == true) {
-            return "TRUE";
-        }
-        else {
-            return "FALSE";
-        }
+        if (boolean_to_convert == true) {return "TRUE";}
+        else {return "FALSE";}
     }
     public static void LoadSettings(boolean calc_vertex,
                                     boolean calc_yintercept,
@@ -315,38 +319,37 @@ class Quadratic_Solver
                                     boolean calc_sumproduct,
                                     boolean factor_equation,
                                     int table_boundaries[]) {
-        String line = "", table_lower_bound = "", table_upper_bound = "";
+        String table_lower_bound = "", table_upper_bound = "";
         boolean comma_reached = false;
-        ifstream settings_file("quadratics_settings");
-        if (settings_file.is_open()) {
-            while (getline(settings_file, line)) {
-                calc_vertex = CharToboolean(line[0]);
-                calc_yintercept = CharToboolean(line[1]);
-                print_table = CharToboolean(line[2]);
-                calc_sumproduct = CharToboolean(line[3]);
-                factor_equation = CharToboolean(line[4]);
-                for (int i = 5; i < (int)line.size(); i++) {
-                    if (line[i] == ',') {
+        try {
+            FileReader file = new FileReader("quadratics_settings");
+            BufferedReader settings_file = new BufferedReader(file);
+            String line = "";
+            /* reads line by line until there is no more text to read */
+            while((line = settings_file.readLine()) != null) {
+                calc_vertex = CharToboolean(line.charAt(0));
+                calc_yintercept = CharToboolean(line.charAt(1));
+                print_table = CharToboolean(line.charAt(2));
+                calc_sumproduct = CharToboolean(line.charAt(3));
+                factor_equation = CharToboolean(line.charAt(4));
+                for (int i = 5; i < line.length(); i++) {
+                    if (line.charAt(i) == ',') {
                         comma_reached = true;
-                    }
-                    else if (!(comma_reached))
+                    } else if (!(comma_reached))
           /* build table_boundaries[0] */
                     {
-                        table_lower_bound = table_lower_bound + line[i];
-                    }
-                    else if (comma_reached)
+                        table_lower_bound = table_lower_bound + line.charAt(i);
+                    } else if (comma_reached)
           /* build table_boundaries[1] */
                     {
-                        table_upper_bound = table_upper_bound + line[i];
+                        table_upper_bound = table_upper_bound + line.charAt(i);
                     }
                 }
-                table_boundaries[0] = atoi(table_lower_bound.c_str());
-                table_boundaries[1] = atoi(table_upper_bound.c_str());
-            }
+                table_boundaries[0] = Integer.parseInt(table_lower_bound);
+                table_boundaries[1] = Integer.parseInt(table_upper_bound);
             settings_file.close();
-    /* set default values and write "quadratics_settings" with default values */
-        }
-        else {
+            }
+        } catch(IOException e) { /* file not found - write default values */
             calc_vertex = true;
             calc_yintercept = true;
             print_table = true;
@@ -354,32 +357,27 @@ class Quadratic_Solver
             factor_equation = true;
             table_boundaries[0] = -10;
             table_boundaries[1] = 10;
-            ofstream settings_file("quadratics_settings");
-            if (settings_file.is_open()) {
-                settings_file << "11111-10,10";
-                settings_file.close();
+            try {
+                FileWriter file = new FileWriter("quadratics_settings");
+                BufferedWriter write_settings = new BufferedWriter(file);
+                write_settings.write("11111-10,10");
+                write_settings.close();
+            } catch(IOException f) {
+                System.out.println("Error encountered writing file\n");
             }
         }
     }
     public static boolean CharToboolean(char c) {
-        if (c == '0') {
-            return false;
-        }
-        else {
-            return true;
-        }
+        if (c == '0') {return false;}
+        else {return true;}
     }
     public static char booleanToChar(boolean b) {
-        if (!(b)) {
-            return '0';
-        }
-        else {
-            return '1';
-        }
+        if (!(b)) {return '0';}
+        else {return '1';}
     }
     public static double PlugIn(double x, double equation[]) {
   /* ax^2 + bx + c */
-        return (equation[0] * pow(x, 2)) + (equation[1] * x) + (equation[2]);
+        return (equation[0] * Math.pow(x, 2)) + (equation[1] * x) + (equation[2]);
     }
     public static char GetSign(double input) {
         if (input >= 0) {
@@ -408,92 +406,113 @@ class Quadratic_Solver
     }
     /* saves equation to "quadratics_equations" */
     public static void SaveEquation(double a, double b, double c) {
-        String line, string_equation;
+        String string_equation;
         Vector<String> equations = new Vector<String> (0,1);
-        ifstream file("quadratics_equations"); /* access file */
-        if(file.is_open()) {
-            while(getline(file, line)) {
-			/* copy in line by line to vector */
-                equations.push_back(line);
+        try{
+            FileReader file = new FileReader("quadratics_equations");
+            BufferedReader read_equations = new BufferedReader(file);
+            String line = "";
+            while((line = read_equations.readLine()) != null) {
+                /* copy in line by line to vector */
+                equations.addElement(line);
             }
+        } catch(IOException e) {
+            System.out.println("Error reading file\n");
         }
-        ofstream new_file("quadratics_equations"); /* access file again in ofstream */
-        if(new_file.is_open()) {
-		/* overwrite with original equations */
-            for(int i = 0; i < (int)equations.size(); i++)
-                new_file << equations[i];
+        try {
+            FileWriter file = new FileWriter("quadratics_equations");
+            BufferedWriter overwrite_equations = new BufferedWriter(file);
+            /* overwrite with original equations */
+            for(int i = 0; i < (int)equations.size(); i++) {
+                overwrite_equations.write(equations.get(i));
+                overwrite_equations.newLine();
+            }
 		/* add newest equation to file */
-            new_file << EquationToString(a, b, c);
-            new_file.close();
+            overwrite_equations.write(EquationToString(a, b, c));
+            overwrite_equations.newLine();
+            overwrite_equations.close();
+        } catch(IOException e) {
+            System.out.println("Error writing file\n");
         }
     }
     /* Removes chosen equation from "quadratics_equations" */
     public static void RemoveEquationFromList(int line_number) {
-        String line;
         int line_counter = 1;
         Vector<String> equations = new Vector<String>(0,1);
-        ifstream file("quadratics_equations");
-        if(file.is_open()) {
-            while(getline(file, line)) {
+        try {
+            FileReader file = new FileReader("quadratics_equations");
+            BufferedReader read_equations = new BufferedReader(file);
+            String line = "";
+            while((line = read_equations.readLine()) != null) {
                 if(line_counter != line_number)
-                    equations.add(line); /* copy all equations except chosen one
+                    equations.addElement(line); /* copy all equations except chosen one
 											* to vector */
                 line_counter++;
             }
+            read_equations.close();
+        } catch(IOException e) {
+            System.out.println("Error reading file\n");
         }
-        ofstream write_file("quadratics_equations");
-        if(write_file.is_open()) {
+        try {
+            FileWriter file = new FileWriter("quadratics_equations");
+            BufferedWriter write_equations = new BufferedWriter(file);
             for(int i = 0; i < (int)equations.size(); i++) {
-                write_file << equations[i]; /* write equations back into file */
+                write_equations.write(equations.get(i)); /* write equations back into file */
+                write_equations.newLine();
             }
-            write_file.close();
+            write_equations.close();
+        } catch(IOException e) {
+            System.out.println("Error writing file\n");
         }
     }
     /* Displays equations stored in "quadratics_equations"
  * User can choose to load an equation into equations[] for use in program,
  * or can delete an equation from the file */
     public static void DisplayEquations(double equation[]) {
-        String line, a, b, c;
+        String a = "", b = "", c = "";
         int line_counter = 1, choice, remove;
-        ifstream equations("quadratics_equations");
-        if(equations.is_open()) {
-            while(getline(equations, line)) {
-                GetEquationFromFile("quadratics_equations", line_counter, false, equation, false);
+        try {
+            FileReader file = new FileReader("quadratics_equations");
+            BufferedReader equations = new BufferedReader(file);
+            String line = "";
+            while ((line = equations.readLine()) != null) {
                 System.out.print(line_counter + ". ");
-//			PrintEquation(equation);
+                GetEquationFromFile("quadratics_equations", line_counter, false, equation, false);
                 line_counter++;
             }
+            equations.close();
             System.out.print(line_counter + ". " + "Delete equation\n");
             System.out.print("Enter choice: ");
             cin >> choice;
-            if(choice == line_counter) { /* choice is to delete an equation */
+            if (choice == line_counter) { /* choice is to delete an equation */
                 System.out.print("Enter number of equation to remove: ");
                 cin >> remove;
                 do {
-                    if(remove < 1 || remove > line_counter - 1) {
+                    if (remove < 1 || remove > line_counter - 1) {
                         System.out.print("Error: Invalid choice. Please try again: ");
                         cin >> remove;
                     }
-                }while(remove < 1 || remove > line_counter -1);
+                } while (remove < 1 || remove > line_counter - 1);
                 RemoveEquationFromList(remove);
-            }
-            else
-                GetEquationFromFile("quadratics_equations", choice, 1, equation, false);
-        } else
-            System.out.print("Error: No saved equations.\n");
+            } else
+                GetEquationFromFile("quadratics_equations", choice, true, equation, false);
+        } catch (IOException e) {
+            System.out.println("No saved equations.\n");
+        }
     }
     /* Reads "file_name" and finds specified line number. If load = true, this
    function will load information from the line into equations[] for use by the
    user. If print = true, the equation will be printed. */
     /// did you mean equation[] or something else? equations[] doesn't exist
     public static boolean GetEquationFromFile(String file_name, int line_number, boolean load, double equation[], boolean print) {
-        String line = "", a ="", b = "", c = "";
+        String a = "", b = "", c = "";
         int line_counter = 1;
-        boolean file_exists = false;
-        ifstream current_equation(file_name.c_str());
-        if(current_equation.is_open()) {
-            file_exists = true;
-            while (getline(current_equation, line)) {
+        boolean file_exists = true;
+        try {
+            FileReader file = new FileReader(file_name);
+            BufferedReader read_file = new BufferedReader(file);
+            String line = "";
+            while((line = read_file.readLine()) != null) {
                 if(line_counter == line_number) {
                     int first_comma = line.indexOf(','); /* find first comma */
                     int second_comma = line.lastIndexOf(','); /* find second comma */
@@ -515,6 +534,8 @@ class Quadratic_Solver
                 if(print)
                     PrintEquation(equation[0], equation[1], equation[2]);
             }
+        } catch(IOException e) {
+            file_exists = false;
         }
         return file_exists;
     }
