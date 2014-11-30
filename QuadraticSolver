@@ -16,21 +16,21 @@ class Quadratic_Solver
     public static void main(String[] args) {
           /* set default values */
         boolean calc_vertex = true, calc_yintercept = true, print_table = true,
-                calc_sumproduct = true, factor_equation = true, equation_loaded = false;
+                calc_sumproduct = true, factor_equation = true, equation_loaded,
+                has_solution = false, allow_complex = true;
   /* equation_loaded tells if there is currently an equation entered */
         int[] table_boundaries = {-10, 10};
         double[] equation = new double [3];
-        double [] vertex = new double [2];
-        double [] solution = new double [2];
-        boolean has_solution = false;
+        double[] vertex = new double [2];
+        double[] solution = new double [2];
         System.out.print("Plain+Simple Quadratic Solver");
-        System.out.println("        Press enter\n");
+        System.out.print("\n        Press enter\n");
         new Scanner(System.in).nextLine(); /* waits for user to hit enter */
         int menu_input;
         do {
 	/* load settings from file */
             LoadSettings(calc_vertex, calc_yintercept, print_table, calc_sumproduct,
-                    factor_equation, table_boundaries);
+                    factor_equation, table_boundaries, allow_complex);
     /* attempt to load last equation used from "quadratics_current" file */
             equation_loaded = GetEquationFromFile("quadratics_current", 1, true, equation, false);
             if(equation_loaded) {
@@ -71,15 +71,15 @@ class Quadratic_Solver
                 do {
                     switch (menu_input) {
                         case 1:
-                            CalculateRoots(equation, solution, has_solution, true);
+                            CalculateRoots(equation, solution, has_solution, true, allow_complex);
                             break;
                         case 2:
-                            System.out.print(Factor(equation, solution));
+                            System.out.print(Factor(equation, solution, has_solution, allow_complex));
                             break;
                         case 3:
                             Display(equation, vertex, solution, has_solution, calc_vertex,
                                     calc_yintercept, print_table, calc_sumproduct, factor_equation,
-                                    table_boundaries);
+                                    table_boundaries, allow_complex);
                             break;
                         case 4:
                             InputEquation(equation);
@@ -89,7 +89,7 @@ class Quadratic_Solver
                             break;
                         case 6:
                             Options(calc_vertex, calc_yintercept, print_table, calc_sumproduct,
-                                    factor_equation, table_boundaries);
+                                    factor_equation, table_boundaries, allow_complex);
                             break;
                         case 7:
                             System.out.print("This function has not been created yet\n\n");
@@ -115,7 +115,7 @@ class Quadratic_Solver
                             break;
                         case 3:
                             Options(calc_vertex, calc_yintercept, print_table, calc_sumproduct,
-                                    factor_equation, table_boundaries);
+                                    factor_equation, table_boundaries, allow_complex);
                             break;
                         case 4:
                             System.out.print("This function has not been created yet\n\n");
@@ -158,30 +158,35 @@ class Quadratic_Solver
             SaveEquation(equation[0], equation[1], equation[2]);
     }
     public static void CalculateRoots(double equation[], double solution[],
-                                      boolean has_solution, boolean print) {
+                                      boolean has_solution, boolean print, boolean allow_complex) {
+        has_solution = true; /* set to true by default - will be checked later */
     /* b^2 - 4ac */
         double discriminant = Math.pow(equation[1], 2) - (4 * equation[0] * equation[2]);
-        if (discriminant < 0) {
+        if (discriminant < 0) { /* if discriminant is less than zero, no real solutions */
             has_solution = false;
-        } else {
-            has_solution = true;
+        }
+        if(has_solution) { /* equation has real solutions */
     /* -b + root b^2 - 4ac / 2a */
             solution[0] = (-equation[1] + Math.sqrt(discriminant)) / (2 * equation[0]);
     /* -b - root b^2 - 4ac / 2a */
             solution[1] = (-equation[1] - Math.sqrt(discriminant)) / (2 * equation[0]);
+        } else { /* no real solutions */
+            solution[0] = (-equation[1] - Math.sqrt(-discriminant)) / (2 * equation[0]);
+            solution[1] = (-equation[1] - Math.sqrt(discriminant)) / (2 * equation[0]);
         }
         if(print) {
-            if (!has_solution) {
-                System.out.print("Equation has no solutions\n");
+            if(has_solution)
+                System.out.print("Root(s): (0," + solution[0] + ")");
+            if (solution[0] != solution[1]) { /* two solutions */
+                System.out.print(" and (0," + solution[1] + ")");
             }
-            else {
-                if (solution[0] == solution[1]) {
-                    System.out.print("Root(s): (0," + solution[1] + ")");
-                }
-                if (solution[0] != solution[1]) {
-                    System.out.print(" and (0," + solution[1] + ")");
-                }
                 System.out.print("\n");
+            if (!has_solution && !allow_complex) { /* no real solutions and complex not allowed */
+                System.out.print("Equation has no solutions\n");
+            } else if(!has_solution && allow_complex) { /* complex solution */
+                System.out.print("Root(s): (0," + solution[1] + "i)");
+                if(solution[0] != solution[1])
+                    System.out.println(" and (0," + solution[1] + "i)");
             }
         }
     }
@@ -194,11 +199,11 @@ class Quadratic_Solver
     }
     public static void Options(boolean calc_vertex, boolean calc_yintercept, boolean print_table,
                                boolean calc_sumproduct, boolean factor_equation,
-                               int table_boundaries[]) {
+                               int table_boundaries[], boolean allow_complex) {
         LoadSettings(calc_vertex, calc_yintercept, print_table, calc_sumproduct,
-                factor_equation, table_boundaries);
+                factor_equation, table_boundaries, allow_complex);
         DisplayOptions(calc_vertex, calc_yintercept, print_table, calc_sumproduct,
-                factor_equation, table_boundaries);
+                factor_equation, table_boundaries, allow_complex);
         System.out.print("Enter number of choice you would like to change: ");
         int choice = 0;
         do{
@@ -237,6 +242,9 @@ class Quadratic_Solver
                     break;
                 case 7:
                     break; /* this does nothing so that the thing after the switch case takes it but it doesn't activate the default case */
+                case 8:
+                    allow_complex = !allow_complex;
+                    System.out.print("Allow Complex Solutions set to \"" + booleanToString(allow_complex) + "\"\n");
                 default:
                     System.out.print("\nPlease enter a choice between 1 and 7:\n");
                     break;
@@ -263,7 +271,7 @@ class Quadratic_Solver
     }
     public static void Display(double equation[], double vertex[], double solution[],
                  boolean has_solution, boolean calc_vertex, boolean calc_yintercept, boolean print_table,
-                 boolean calc_sumproduct, boolean factor_equation, int table_boundaries[]) {
+                 boolean calc_sumproduct, boolean factor_equation, int table_boundaries[], boolean allow_complex) {
 
         System.out.print("\n\n");
         if (calc_vertex) {
@@ -275,14 +283,18 @@ class Quadratic_Solver
         }
         System.out.print("Equation: ");
         PrintEquation(equation[0], equation[1], equation[2]);
-        CalculateRoots(equation, solution, has_solution, true);
+        CalculateRoots(equation, solution, has_solution, true, allow_complex);
         if (calc_sumproduct) {
             System.out.print("Sum of roots = " + solution[0] + solution[1] +
                     "\n");
-            System.out.print("Product of roots = " + solution[0] * solution[1] + "\n");
+            System.out.print("Product of roots = ");
+            if(has_solution)
+                System.out.print(solution[0] * solution[1] + "\n");
+            else if(!has_solution && allow_complex)
+                System.out.print(-1 * solution[0] * solution[1] + "\n");
         }
         if (factor_equation) {
-            String f = Factor(equation, solution);
+            String f = Factor(equation, solution, has_solution, allow_complex);
             System.out.print(f);
         }
         if (calc_vertex) {
@@ -295,11 +307,13 @@ class Quadratic_Solver
             Table(equation, print_table, table_boundaries);
         }
     }
-    public static String Factor(double equation[], double solution[]) { /// why does this return a string?
+    public static String Factor(double equation[], double solution[], boolean has_solution,
+        boolean allow_complex) { /// why does this return a string?
         /// why not just void, and print it directly?
   /* plug in 1 */
-        double equation_factor = PlugIn(1, equation) /
-                ((1 - solution[0]) * (1 - solution[1]));
+        double equation_factor = PlugIn(1, equation) / ((1 - solution[0]) * (1 - solution[1]));
+        if(!has_solution && allow_complex)
+            equation_factor = equation_factor * -1;
         if (solution[0] != solution[1]) {
             return Double.toString(equation_factor) +
                     "(x" + GetSign(solution[0]) + Double.toString(solution[0]) + ")" +
@@ -318,7 +332,7 @@ class Quadratic_Solver
                                     boolean print_table,
                                     boolean calc_sumproduct,
                                     boolean factor_equation,
-                                    int table_boundaries[]) {
+                                    int table_boundaries[], boolean allow_complex) {
         String table_lower_bound = "", table_upper_bound = "";
         boolean comma_reached = false;
         try {
@@ -332,7 +346,8 @@ class Quadratic_Solver
                 print_table = CharToboolean(line.charAt(2));
                 calc_sumproduct = CharToboolean(line.charAt(3));
                 factor_equation = CharToboolean(line.charAt(4));
-                for (int i = 5; i < line.length(); i++) {
+                allow_complex = CharToboolean(line.charAt(5));
+                for (int i = 6; i < line.length(); i++) {
                     if (line.charAt(i) == ',') {
                         comma_reached = true;
                     } else if (!(comma_reached))
@@ -355,12 +370,13 @@ class Quadratic_Solver
             print_table = true;
             calc_sumproduct = true;
             factor_equation = true;
+            allow_complex = true;
             table_boundaries[0] = -10;
             table_boundaries[1] = 10;
             try {
                 FileWriter file = new FileWriter("quadratics_settings");
                 BufferedWriter write_settings = new BufferedWriter(file);
-                write_settings.write("11111-10,10");
+                write_settings.write("111111-10,10");
                 write_settings.close();
             } catch(IOException f) {
                 System.out.println("Error encountered writing file\n");
@@ -387,7 +403,8 @@ class Quadratic_Solver
         }
     }
     public static void DisplayOptions(boolean calc_vertex, boolean calc_yintercept, boolean print_table,
-                                      boolean calc_sumproduct, boolean factor_equation, int table_boundaries[]) {
+                                      boolean calc_sumproduct, boolean factor_equation, int table_boundaries[],
+                                      boolean allow_complex) {
         System.out.println("\nSettings: ");
         System.out.println("---------------------------------------------");
         System.out.println("1. Calculate Vertex......................." + booleanToString(calc_vertex));
@@ -396,7 +413,8 @@ class Quadratic_Solver
         System.out.println("4. Factor Equation........................" + booleanToString(factor_equation));
         System.out.println("5. Print Table............................" + booleanToString(print_table));
         System.out.println("6. Set Table Boundaries...................(" + table_boundaries[0] + "," + table_boundaries[1] + ")");
-        System.out.println("7. Back to Main Menu");
+        System.out.println("7. Allow Complex Solutions................" + booleanToString(allow_complex));
+        System.out.println("8. Back to Main Menu");
         System.out.println("---------------------------------------------\n\n");
     }
     /* saves equation to "quadratics_equations" */
