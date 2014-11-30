@@ -23,8 +23,8 @@ class Quadratic_Solver
         double [] vertex = new double [2];
         double [] solution = new double [2];
         boolean has_solution = false;
-        System.out.print("Plain+Simple Quadratic Solver\n");
-        System.out.print("        Press enter\n");
+        System.out.print("Plain+Simple Quadratic Solver");
+        System.out.println("        Press enter\n");
         new Scanner(System.in).nextLine(); /* waits for user to hit enter */
         int menu_input;
         do {
@@ -104,7 +104,7 @@ class Quadratic_Solver
                 }while (menu_input < 1 || menu_input > 8);
             }
             else {
-    	/* menu when equation IS NOT loaded */			/// there's a better way to do this
+    	/* menu when equation IS NOT loaded */			/// could this be refactored?
                 do{
                     switch(menu_input) {
                         case 1:
@@ -206,26 +206,26 @@ class Quadratic_Solver
             switch (choice) {
                 case 1:
                     calc_vertex = !calc_vertex;
-                    System.out.print("Calculate Vertex set to + " + booleanToString(calc_vertex) + " >>\n");
+                    System.out.print("Calculate Vertex set to \"" + booleanToString(calc_vertex) + " \"\n");
                     break;
                 case 2:
                     calc_yintercept = ! calc_yintercept;
-                    System.out.print("Calculate y-Intercept set to + " + booleanToString(
-                            calc_yintercept) + " >>\n");
+                    System.out.print("Calculate y-Intercept set to \"" + booleanToString(
+                            calc_yintercept) + " \"\n");
                     break;
                 case 3:
                     print_table = !print_table;
-                    System.out.print("Print Table set to + " + booleanToString(print_table) + " >>\n");
+                    System.out.print("Print Table set to \"" + booleanToString(print_table) + " \"\n");
                     break;
                 case 4:
                     calc_sumproduct = !calc_sumproduct;
-                    System.out.print("Calculate Sum and Product set to + " + booleanToString(
-                            calc_sumproduct) + " >>\n");
+                    System.out.print("Calculate Sum and Product set to \"" + booleanToString(
+                            calc_sumproduct) + " \"\n");
                     break;
                 case 5:
                     factor_equation = !factor_equation;
-                    System.out.print("Factor Equation set to + " + booleanToString(factor_equation) +
-                            " >>\n");
+                    System.out.print("Factor Equation set to \"" + booleanToString(factor_equation) +
+                            " \"\n");
                     break;
                 case 6:
                     System.out.print("Enter lower bound: ");
@@ -388,21 +388,16 @@ class Quadratic_Solver
     }
     public static void DisplayOptions(boolean calc_vertex, boolean calc_yintercept, boolean print_table,
                                       boolean calc_sumproduct, boolean factor_equation, int table_boundaries[]) {
-        System.out.print("\n\nSettings: \n");
-        System.out.print( "---------------------------------------------\n");
-        System.out.print( "1. Calculate Vertex......................." + booleanToString(calc_vertex));
-        System.out.print("\n2. Calculate y-Intercept..................");
-        System.out.print( booleanToString(calc_yintercept));
-        System.out.print("\n3. Calculate Sum and Product..............");
-        System.out.print( booleanToString(calc_sumproduct));
-        System.out.print("\n4. Factor Equation........................");
-        System.out.print( booleanToString(factor_equation));
-        System.out.print("\n5. Print Table............................");
-        System.out.print( booleanToString(print_table));
-        System.out.print( "\n6. Set Table Boundaries...................(");
-        System.out.print( table_boundaries[0] + "," + table_boundaries[1] + ")\n");
-        System.out.print( "\n7. Back to Main Menu\n");
-        System.out.print( "---------------------------------------------\n\n");
+        System.out.println("\nSettings: ");
+        System.out.println("---------------------------------------------");
+        System.out.println("1. Calculate Vertex......................." + booleanToString(calc_vertex));
+        System.out.println("2. Calculate y-Intercept.................." + booleanToString(calc_yintercept));
+        System.out.println("3. Calculate Sum and Product.............." + booleanToString(calc_sumproduct));
+        System.out.println("4. Factor Equation........................" + booleanToString(factor_equation));
+        System.out.println("5. Print Table............................" + booleanToString(print_table));
+        System.out.println("6. Set Table Boundaries...................(" + table_boundaries[0] + "," + table_boundaries[1] + ")");
+        System.out.println("7. Back to Main Menu");
+        System.out.println("---------------------------------------------\n\n");
     }
     /* saves equation to "quadratics_equations" */
     public static void SaveEquation(double a, double b, double c) {
@@ -525,7 +520,6 @@ class Quadratic_Solver
                     c = line.substring(second_comma + 1,
                             line.length()  - (a.length() + b.length() + 2));
                 }
-                line_counter++;
                 if(load) { /* "loads" values in to equation[] according to parameter */
                     equation[0] = Double.parseDouble(a);
                     equation[1] = Double.parseDouble(b);
@@ -533,6 +527,7 @@ class Quadratic_Solver
                 }
                 if(print)
                     PrintEquation(equation[0], equation[1], equation[2]);
+                line_counter++;
             }
         } catch(IOException e) {
             file_exists = false;
@@ -585,15 +580,9 @@ class Quadratic_Solver
 //        System.out.print("\x1b[2J\x1b[H" << flush;
 //    }
     public static String GetConsoleInput() {
-        InputStreamReader isr = new InputStreamReader(System.in);
-        BufferedReader buffer = new BufferedReader(isr);
-        String input = "";
-        try {
-            input = buffer.readLine();
-            buffer.close();
-        } catch(IOException e) {
-            System.out.println("An input error has occured\n");
-        }
-        return input;
+        Scanner input = new Scanner(System.in);
+        String consoleInput = input.nextLine();
+        input.close();
+        return consoleInput;
     }
 }
